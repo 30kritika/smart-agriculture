@@ -1,5 +1,7 @@
+import os
+from dotenv import load_dotenv
 
-Python Code:
+load_dotenv() 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from azure.storage.blob import BlobServiceClient
@@ -9,14 +11,14 @@ app = Flask(__name__, static_folder="static")
 CORS(app)  # Enable CORS for cross-origin requests
 
 # Azure Blob Storage Configuration
-AZURE_STORAGE_CONNECTION_STRING = "YOUR_CONNECTION_STRING_HERE"  # Replace with your Azure Storage connection string
+AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")  # Replace with your Azure Storage connection string
 CONTAINER_NAME = "images"  # Replace with your container name
 blob_service_client = BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
 container_client = blob_service_client.get_container_client(CONTAINER_NAME)
 
 # Custom Vision Configuration
-PREDICTION_ENDPOINT = "YOUR_PREDICTION_ENDPOINT_HERE"
-PREDICTION_KEY = "YOUR_PREDICTION_KEY_HERE"
+PREDICTION_ENDPOINT = os.getenv("PREDICTION_ENDPOINT")
+PREDICTION_KEY = os.getenv("PREDICTION_KEY")
 
 def upload_to_blob_storage(file, blob_name):
     
