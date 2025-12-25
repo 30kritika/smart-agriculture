@@ -1,1 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Custom Vision Analysis</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+            background-color: #f3f3f3;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #0078d7;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005a9e;
+        }
+
+        /* Results Container */
+        #results-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .prediction-card {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
+            text-align: center;
+            width: 200px;
+        }
+
+        .prediction-card h3 {
+            margin-bottom: 10px;
+            color: #0078d7;
+        }
+
+        .prediction-card p {
+            font-size: 16px;
+            margin: 0;
+        }
+
+        /* Category-Specific Styles */
+        .healthy {
+            background: linear-gradient(135deg, #a8e063, #56ab2f);
+            color: white;
+        }
+
+        .pest-infected {
+            background: linear-gradient(135deg, #ffe066, #ffc107);
+            color: black;
+        }
+
+        .fungal-diseases {
+            background: linear-gradient(135deg, #c084fc, #a855f7);
+            color: white;
+        }
+
+        .bacterial-diseases {
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            color: white;
+        }
+
+        .viral-diseases {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+            color: white;
+        }
+
+        /* Image Display */
+        #uploaded-image {
+            width: 16%;
+            margin: 20px 20px 20px 500px;
+            display: none;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload an Image for Analysis</h1>
+    <form id="upload-form">
+        <input type="file" id="image-input" accept="image/*" required />
+        <button type="submit">Analyze</button>
+    </form>
+    <img id="uploaded-image" />
+    <div id="results-container"></div>
+
+    <script>
+        document.getElementById("upload-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            // Get the uploaded image
+            const imageInput = document.getElementById("image-input");
+            const image = imageInput.files[0];
+            const formData = new FormData();
+            formData.append("image", image);
+
+            // Display the uploaded image
+            const uploadedImage = document.getElementById("uploaded-image");
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                uploadedImage.src = e.target.result;
+                uploadedImage.style.display = "block";
+            };
+            reader.readAsDataURL(image);
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/analyze", {
+                    method: "POST",
+                    body: formData
+                });
+                const result = await response.json();
+
+                // Display predictions
+                const resultsContainer = document.getElementById("results-container");
+                resultsContainer.innerHTML = ""; // Clear previous results
+
+                result.predictions.forEach(prediction => {
+                    const card = document.createElement("div");
+                    card.className = "prediction-card";
+
+                    // Add styles dynamically based on tag
+                    if (prediction.tagName.toLowerCase() === "healthy") {
+                        card.classList.add("healthy");
+                    } else if (prediction.tagName.toLowerCase() === "pest infected") {
+                        card.classList.add("pest-infected");
+                    } else if (prediction.tagName.toLowerCase() === "fungal diseases") {
+                        card.classList.add("fungal-diseases");
+                    } else if (prediction.tagName.toLowerCase() === "bacterial diseases") {
+                        card.classList.add("bacterial-diseases");
+                    } else if (prediction.tagName.toLowerCase() === "viral diseases") {
+                        card.classList.add("viral-diseases");
+                    }
+
+                    card.innerHTML = `
+                        <h3>${prediction.tagName}</h3>
+                        <p>Probability: ${(prediction.probability * 100).toFixed(2)}%</p>
+                    `;
+                    resultsContainer.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Error:", error);
+                document.getElementById("results-container").textContent = "Error connecting to the server.";
+            }
+        });
+    </script>
+</body>
+</html>
 
